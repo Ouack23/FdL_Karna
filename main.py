@@ -1,41 +1,24 @@
-#try:
-from RPi import GPIO
-#except RuntimeError:
-#    print("Error importing RPiGPIO! You need superuser privileges. Use 'sudo' to run your script")
-
-import array
+from DMX import DMX
 from ola.ClientWrapper import ClientWrapper
-
-wrapper = None
-loop_count = 0
-TICK_INTERVAL = 100  # in ms
-
-def DmxSent(state):
-  if not state.Succeeded():
-    wrapper.Stop()
-
-def SendDMXFrame():
-  # schdule a function call in 100ms
-  # we do this first in case the frame computation takes a long time.
-  wrapper.AddEvent(TICK_INTERVAL, SendDMXFrame)
-
-  # compute frame here
-  data = array.array('B')
-  global loop_count
-  data.append(loop_count % 255)
-  loop_count += 1
-
-  # send
-  wrapper.Client().SendDmx(1, data, DmxSent)
+from array import array
 
 
-wrapper = ClientWrapper()
-wrapper.AddEvent(TICK_INTERVAL, SendDMXFrame)
-wrapper.Run()
+UNIVERSE = 0
+UPDATE = 5
+DURATION = 2000
+CHANNELS = 4
 
+DMX = DMX(UNIVERSE, ClientWrapper(), DURATION, CHANNELS)
 
-GPIO.setmode(GPIO.BOARD)
+DMX.SendDMX(array('B', [255, 0, 0, 0]))
+DMX.Run()
 
-GPIO.setup([4,10],GPIO.IN,pull_up_down=GPIO.PUD_UP)
-GPIO.setup([12,18],GPIO.OUT)
+DMX.SendDMX(array('B', [0, 255, 0, 0]))
+DMX.Run()
 
+DMX.SendDMX(array('B', [0, 0, 255, 0]))
+DMX.Run()
+
+DMX.set_duration(10000)
+if(DMX.FadeDMX(array('B', [255, 0, 0, 0]), array('B', [0, 0, 0, 0]), UPDATE)):
+    DMX.Run()
