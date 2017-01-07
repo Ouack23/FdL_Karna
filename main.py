@@ -1,24 +1,32 @@
 from DMX import DMX
-from ola.ClientWrapper import ClientWrapper
+from DMX_fade import DMXFade
+from twisted.internet import threads, reactor, defer
+from OSC import UDPReceiverApplication
 from array import array
-
+import logging
+import time
 
 UNIVERSE = 0
 UPDATE = 5
-DURATION = 2000
+DURATION = 1000
 CHANNELS = 4
+OSC_PORT = 5000
 
-DMX = DMX(UNIVERSE, ClientWrapper(), DURATION, CHANNELS)
+logging.basicConfig(format='%(asctime)s %(threadName)s [%(threadName)s] %(levelname)s : %(message)s', level=logging.DEBUG)
+UDPReceiverApplication(OSC_PORT)
 
-DMX.SendDMX(array('B', [255, 0, 0, 0]))
-DMX.Run()
+_DMX = DMX(UNIVERSE, DURATION, CHANNELS)
+_DMX.run_dmx()
 
-DMX.SendDMX(array('B', [0, 255, 0, 0]))
-DMX.Run()
+_DMX.send_dmx(array('B', [255, 0, 0, 0]))
+_DMX.run_dmx()
+_DMX.send_dmx(array('B', [0, 255, 0, 0]))
+_DMX.run_dmx()
+_DMX.send_dmx(array('B', [0, 0, 255, 0]))
+_DMX.run_dmx()
+_DMX.send_dmx(array('B', [0, 0, 255, 255]))
+_DMX.run_dmx()
 
-DMX.SendDMX(array('B', [0, 0, 255, 0]))
-DMX.Run()
-
-DMX.set_duration(10000)
-if(DMX.FadeDMX(array('B', [255, 0, 0, 0]), array('B', [0, 0, 0, 0]), UPDATE)):
-    DMX.Run()
+_DMX_fade = DMXFade(UNIVERSE, DURATION, CHANNELS)
+_DMX_fade.set_duration(10000)
+_DMX_fade.fade_dmx(array('B', [255, 0, 0, 0]), array('B', [0, 0, 0, 0]), UPDATE)
