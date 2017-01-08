@@ -1,7 +1,6 @@
-from txosc import osc
 from txosc import dispatch
 from txosc import async
-from twisted.internet import threads, reactor
+from twisted.internet import reactor
 import logging
 
 
@@ -20,7 +19,6 @@ class UDPReceiverApplication(object):
         self.receiver.addCallback("/dmxfade", self.dmx_fade_handler)
         self.receiver.addCallback("/dmx", self.dmx_handler)
         self.receiver.fallback = self.fallback
-        reactor.callInThread(reactor.run)
 
     @staticmethod
     def dmx_fade_handler(message, address):
