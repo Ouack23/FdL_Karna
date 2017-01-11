@@ -18,7 +18,7 @@ _DMX = DMX(UNIVERSE, DURATION, CHANNELS)
 _DMX.send_dmx(array('B', [255, 0, 0, 0]))
 _DMX.send_dmx(array('B', [0, 255, 0, 0]))
 _DMX.send_dmx(array('B', [0, 0, 255, 0]))
-_DMX.send_dmx(array('B', [0, 0, 255, 255]))
+_DMX.send_dmx(array('B', [0, 0, 0, 255]))
 
 _DMX.set_duration(DURATION_FADE)
 _DMX.send_fade_dmx(array('B', [255, 0, 0, 0]), array('B', [0, 0, 0, 0]))

@@ -1,9 +1,11 @@
 import logging
 from ola.DMXConstants import DMX_MIN_SLOT_VALUE, DMX_MAX_SLOT_VALUE, DMX_UNIVERSE_SIZE
 import sys
+import ola
 from ola.ClientWrapper import ClientWrapper
 from twisted.internet import threads
 from array import array
+import os
 import math
 
 wrapper = None
@@ -16,7 +18,15 @@ def run_wrapper():
 
 def set_wrapper():
     global wrapper
-    wrapper = ClientWrapper()
+    try:
+        wrapper = ClientWrapper()
+    except ola.OlaClient.OLADNotRunningException:
+        logging.error("OLA is not running !")
+        os.system("olad -f")
+        os.system("sleep 1")
+        os.system("ola_patch -d 1 -p 0 -u 0")
+        wrapper = ClientWrapper()
+
     return wrapper
 
 
@@ -30,7 +40,7 @@ def dmx_sent(status):
     if status.Succeeded():
         logging.debug('DMX sent successfully !')
     else:
-        logging.warning('Error : %s' % status.message, file=sys.stderr)
+        logging.error(status.message)
 
 
 def array_to_string(tab):
