@@ -1,13 +1,8 @@
-import logging
+import logging, os, math, ola
 from ola.DMXConstants import DMX_MIN_SLOT_VALUE, DMX_MAX_SLOT_VALUE, DMX_UNIVERSE_SIZE
-import sys
-import ola
 from ola.ClientWrapper import ClientWrapper
 from twisted.internet import threads
 from array import array
-import os
-import math
-
 wrapper = None
 
 
