@@ -1,10 +1,9 @@
-import logging
+import logging, pins, time
 from DMX import DMX
 from twisted.internet import reactor
 from OSC import UDPReceiverApplication
 from game_manager import GameManager
 from array import array
-import pins
 import RPi.GPIO as GPIO
 
 UNIVERSE = 0
@@ -15,9 +14,16 @@ CHANNELS = 4
 OSC_PORT = 5000
 
 logging.basicConfig(format='%(asctime)s %(threadName)s [%(threadName)s] %(levelname)s : %(message)s', level=logging.DEBUG)
+
 pins.gpio_setup()
-while True:
-    logging.debug("This is GPIO 2 state :" + str(GPIO.input(2)))
+colors = pins.get_colors()
+
+for i in 2*range(len(colors)):
+    pins.set_color(colors[i])
+    time.sleep(1)
+
+pins.wait_for_color("blue")
+
 # _OSC = UDPReceiverApplication(OSC_PORT)
 #
 # _DMX = DMX(UNIVERSE, DURATION, CHANNELS)
