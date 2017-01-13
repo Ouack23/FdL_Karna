@@ -17,13 +17,16 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s %(threadName)s [%(threadName)s] %(levelname)s : %(message)s', level=logging.DEBUG)
 
 pins.gpio_setup(logging.getLevelName(logger.getEffectiveLevel()))
-colors = pins.get_colors()
+# colors = pins.get_colors()
 
-for i in 2*range(len(colors)):
-    pins.set_color(colors[i])
+# for i in 2*range(len(colors)):
+#    pins.set_color(colors[i])
+#    time.sleep(1)
+
+# pins.wait_for_color("blue")
+pins.get_first_color_event("red")
+while True:
     time.sleep(1)
-
-pins.wait_for_color("blue")
 
 # _OSC = UDPReceiverApplication(OSC_PORT)
 #
