@@ -1,7 +1,6 @@
-import logging, os, math, ola
-from ola.DMXConstants import DMX_MIN_SLOT_VALUE, DMX_MAX_SLOT_VALUE, DMX_UNIVERSE_SIZE
+import logging, os, math, ola, functions
+from ola.DMXConstants import DMX_MIN_SLOT_VALUE, DMX_UNIVERSE_SIZE
 from ola.ClientWrapper import ClientWrapper
-from twisted.internet import threads
 from array import array
 wrapper = None
 
@@ -28,7 +27,7 @@ def set_wrapper():
 def stop_wrapper():
     global wrapper
     wrapper.Stop()
-    logging.info("Stopped !")
+    logging.info("DMX wrapper stopped !")
 
 
 def dmx_sent(status):
@@ -36,17 +35,6 @@ def dmx_sent(status):
         logging.debug('DMX sent successfully !')
     else:
         logging.error(status.message)
-
-
-def array_to_string(tab):
-    result = "["
-    
-    for i in range(len(tab) - 1):
-        result += str(tab[i]) + ", "
-        
-    result += str(tab[len(tab) - 1]) + "]"
-    
-    return result
         
 
 class DMX(object):
@@ -68,7 +56,7 @@ class DMX(object):
         self._data_end = init_dmx_array
 
         logging.info("Running DMX thread indefinitely")
-        self._state = threads.deferToThread(set_wrapper)
+        self._state = set_wrapper()
 
     def set_duration(self, value):
         self._duration = value
@@ -77,10 +65,19 @@ class DMX(object):
         global wrapper
         set_wrapper()
         wrapper.Client().SendDmx(self._universe, data, dmx_sent)
-        logging.info("Sending DMX data : " + array_to_string(data))
+        logging.info("Sending DMX data : " + functions.array_to_string(data))
         logging.info("Running for " + str(self._duration) + " s !")
         wrapper.AddEvent(self.get_duration_ms(), stop_wrapper)
         run_wrapper()
+
+    def send_dmx_and_black(self, data):
+        self.send_dmx(data)
+        black_array = array('B')
+
+        for i in range(self._channels):
+            black_array.append(0)
+
+        self.send_dmx(black_array)
 
     def get_default_dmx_array(self):
         default_dmx_array = array('B')
@@ -119,11 +116,11 @@ class DMX(object):
             self._step = self.calcul_step()
             self._duration = self.get_real_duration_ms()
 
-            logging.info("Initial Data :           " + array_to_string(self._data_begin))
-            logging.debug("Current Data :           " + array_to_string(self._data_current))
-            logging.info("Final Data :             " + array_to_string(self._data_end))
+            logging.info("Initial Data :           " + functions.array_to_string(self._data_begin))
+            logging.debug("Current Data :           " + functions.array_to_string(self._data_current))
+            logging.info("Final Data :             " + functions.array_to_string(self._data_end))
             logging.info("Duration :               " + str(self._duration) + " ms")
-            logging.info("Step at each update :    " + array_to_string(self._step))
+            logging.info("Step at each update :    " + functions.array_to_string(self._step))
             logging.info("Update each :            " + str(self._update) + " ms")
 
             wrapper.AddEvent(self._duration, stop_wrapper)
@@ -147,7 +144,7 @@ class DMX(object):
                     elif self._data_current[i] > self._data_end[i]:
                         self._data_current[i] -= self._step[i]
 
-            logging.debug("Current Data Monitoring : " + array_to_string(self._data_current))
+            logging.debug("Current Data Monitoring : " + functions.array_to_string(self._data_current))
 
             wrapper.Client().SendDmx(self._universe, self._data_current, dmx_sent)
             wrapper.AddEvent(self._update, self.fade_dmx_callback)
