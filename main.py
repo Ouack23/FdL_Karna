@@ -13,9 +13,10 @@ DURATION_FADE = 10
 CHANNELS = 4
 OSC_PORT = 5000
 
+logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s %(threadName)s [%(threadName)s] %(levelname)s : %(message)s', level=logging.DEBUG)
 
-pins.gpio_setup()
+pins.gpio_setup(logging.getLevelName(logger.getEffectiveLevel()))
 colors = pins.get_colors()
 
 for i in 2*range(len(colors)):
@@ -39,4 +40,4 @@ pins.wait_for_color("blue")
 # _DMX.send_fade_dmx(array('B', [255, 0, 0, 0]), array('B', [0, 0, 0, 0]))
 
 #reactor.run()
-GPIO.cleanup()
+#GPIO.cleanup()

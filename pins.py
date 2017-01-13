@@ -1,35 +1,31 @@
 import logging, warnings
 import RPi.GPIO as GPIO
-import DMX
+from DMX import array_to_string
 from collections import OrderedDict
 
-pins = OrderedDict(blue = 2, yellow = 3, green = 4, red = 14)
+
+pins = OrderedDict({'blue':  4, 'yellow': 17, 'green': 27, 'red': 22})
 
 
-def gpio_setup():
-    global pins
-
+def gpio_setup(log_level):
+    global pins, logger
     GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(True)
+    if log_level == "DEBUG":
+    	GPIO.setwarnings(True)
+    else:
+        GPIO.setwarnings(False)
     gpio_set_inputs()
 
 
 def cleanup_pins():
     global pins
-
     GPIO.cleanup(pins.values())
 
 
 def get_colors():
     global pins
-    result = []
+    return pins.keys()
 
-    for i in range(len(pins)):
-        result.append(pins.keys()[i])
-
-    logging.debug("Colors set to : " + DMX.array_to_string(result))
-
-    return result
 
 def gpio_set_inputs():
     global pins
@@ -52,8 +48,9 @@ def read_inputs():
     global pins
 
     result = []
+    gpio_set_inputs()
     logging.debug("Reading GPIO")
-
+    
     for i in range(len(pins)):
         result.append(GPIO.input(pins.values()[i]))
         logging.debug("Result " + pins.keys()[i] + " = " + str(result[i]))
@@ -65,10 +62,7 @@ def wait_for_color(color):
     global pins
     
     channel = pins.get(color)
-    
     gpio_set_inputs()
-    
-    GPIO.add_event_detect(channel, GPIO.RISING)
-    
-    if GPIO.event_detected(channel):
+    if GPIO.wait_for_edge(channel, GPIO.RISING):
         print('Button pressed')
+        read_inputs()
