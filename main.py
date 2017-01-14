@@ -42,5 +42,5 @@ while True:
 # _DMX.set_duration(DURATION_FADE)
 # _DMX.send_fade_dmx(array('B', [255, 0, 0, 0]), array('B', [0, 0, 0, 0]))
 
-#reactor.run()
-#GPIO.cleanup()
+# reactor.run()
+# GPIO.cleanup()

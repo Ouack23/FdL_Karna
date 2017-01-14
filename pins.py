@@ -1,6 +1,5 @@
-import logging, warnings
+import logging
 import RPi.GPIO as GPIO
-from DMX import array_to_string
 from collections import OrderedDict
 
 
@@ -20,7 +19,7 @@ def search_key_with_value(v, tab):
 
 
 def gpio_setup(log_level):
-    global pins, logger
+    global pins
     GPIO.setmode(GPIO.BCM)
     if log_level == "DEBUG":
         GPIO.setwarnings(True)
@@ -97,7 +96,7 @@ def good_first_color_name(channel):
     
     color = search_key_with_value(channel, pins)
 
-    if color != None:
+    if color is not None:
         logging.debug("GOOD : Detecting color " + str(color) + " as first event")
     else:
         logging.error("First event considered good but doesn't match a color !")
@@ -110,7 +109,7 @@ def wrong_first_color_name(channel):
     
     color = search_key_with_value(channel, pins)
     
-    if color != None:
+    if color is not None:
         logging.debug("WRONG : Detecting color " + str(color) + " as first event")
     else:
         logging.error("First event considered bad but doesn't match a color !")
@@ -120,6 +119,6 @@ def wrong_first_color_name(channel):
 
 def delete_event_detections():
     global pins
-    
+
     for i in range(len(pins)):
         GPIO.remove_event_detect(pins.values()[i])
