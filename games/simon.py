@@ -46,26 +46,41 @@ class Simon(Game):
 
         elif self.mode == "RPI":
             logging.info("Running Simon game")
-
-            self.seq = [self.pins.pins.values()[random.randrange(0, 3)]]
-
+            
+            self.seq = [self.pins.pins.keys()[random.randrange(0, len(self.pins.pins)-1)]]
+            
+            logging.debug("Added " + str(self.seq) + " to color sequence")
+            
             while not self.fail:
                 for i in range(len(self.seq)):
                     self.pins.set_color(self.seq[i])
                     time.sleep(1)
-                for i in range(len(self.seq)):
-                    while self.pins.event == "wait":
-                        self.pins.get_first_color_event(self.seq[i])
 
+                for i in range(len(self.seq)):
+                    self.pins.get_first_color_event(self.seq[i])
+
+                    logging.debug("Waiting for color input")
+
+                    while self.pins.event == "wait":
+                        pass
+                    
+                    logging.debug("Callback detected ! Deleting event detections")
+                    self.pins.delete_event_detections()
+                    
                     if self.pins.event == "wrong":
                         self.fail = True
                         break
 
+                    else:
+                        logging.debug("Good input !")
+                
                 if not self.fail:
-                    self.seq.append(self.pins.pins.values()[random.randrange(0, 3)])
-
+                    self.seq.append(self.pins.pins.keys()[random.randrange(0, len(self.pins.pins)-1)])
+                    logging.debug("Good sequence, appending a new color : " + str(self.seq))
+            
             logging.info("That wasn't the right sequence, I am restarting the game !")
             self.stop()
+
         else:
             logging.info("Unknown mode : " + str(self.mode))
 
