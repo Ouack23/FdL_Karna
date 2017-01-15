@@ -1,5 +1,3 @@
-
-
 def search_key_with_value(v, tab):
     for k, j in tab.items():
         if j == v:

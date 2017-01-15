@@ -1,116 +1,97 @@
 import logging, functions
-# import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError:
+    pass
 from collections import OrderedDict
 
 
-pins = OrderedDict()
-pins["blue"] = 4
-pins["yellow"] =  17
-pins["green"] =  27
-pins["red"] = 22
+class Pins(object):
+    def __init__(self):
+        self.pins = OrderedDict()
+        self.pins["b"] = 4
+        self.pins["y"] = 17
+        self.pins["g"] = 27
+        self.pins["r"] = 22
+        self.event = "wait"
 
+    def gpio_setup(self, log_level):
+        GPIO.setmode(GPIO.BCM)
+        if log_level == "DEBUG":
+            GPIO.setwarnings(True)
+        else:
+            GPIO.setwarnings(False)
+        self.gpio_set_inputs()
 
-def gpio_setup(log_level):
-    global pins
-    GPIO.setmode(GPIO.BCM)
-    if log_level == "DEBUG":
-        GPIO.setwarnings(True)
-    else:
-        GPIO.setwarnings(False)
-    gpio_set_inputs()
+    def cleanup_pins(self):
+        GPIO.cleanup(self.pins.values())
 
+    def get_colors(self):
+        return self.pins.keys()
 
-def cleanup_pins():
-    global pins
-    GPIO.cleanup(pins.values())
+    def gpio_set_inputs(self):
+        self.cleanup_pins()
+        GPIO.setup(self.pins.values(), GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
+    def set_color(self, color):
+        self.cleanup_pins()
+        GPIO.setup(self.pins.values(), GPIO.OUT, initial=GPIO.LOW)
 
-def get_colors():
-    global pins
-    return pins.keys()
+        if color in self.pins:
+            GPIO.output(self.pins[color], GPIO.HIGH)
 
+    def read_inputs(self):
+        result = []
+        self.gpio_set_inputs()
+        logging.debug("Reading GPIO")
 
-def gpio_set_inputs():
-    global pins
+        for i in range(len(self.pins)):
+            result.append(GPIO.input(self.pins.values()[i]))
+            logging.debug("Result " + self.pins.keys()[i] + " = " + str(result[i]))
 
-    cleanup_pins()
-    GPIO.setup(pins.values(), GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        return result
 
+    def wait_for_color(self, color):
+        self.gpio_set_inputs()
+        self.event = "wait"
 
-def set_color(color):
-    global pins
+        if GPIO.wait_for_edge(self.pins.get(color), GPIO.RISING):
+            logging.debug("Button " + str(color) + " pressed")
+            self.read_inputs()
 
-    cleanup_pins()
-    GPIO.setup(pins.values(), GPIO.OUT, initial=GPIO.LOW)
+    def get_first_color_event(self, color):
+        self.event = "wait"
+        self.gpio_set_inputs()
 
-    if color in pins:
-        GPIO.output(pins[color], GPIO.HIGH)
+        GPIO.add_event_detect(self.pins.get(color), GPIO.RISING, callback=self.good_first_color_name, bouncetime=200)
 
+        for i in range(len(self.pins)):
+            if self.pins.keys()[i] != color:
+                GPIO.add_event_detect(self.pins.values()[i], GPIO.RISING, callback=self.wrong_first_color_name, bouncetime=200)
 
-def read_inputs():
-    global pins
+    def good_first_color_name(self, channel):
+        self.event = "right"
+        color = functions.search_key_with_value(channel, self.pins)
 
-    result = []
-    gpio_set_inputs()
-    logging.debug("Reading GPIO")
-    
-    for i in range(len(pins)):
-        result.append(GPIO.input(pins.values()[i]))
-        logging.debug("Result " + pins.keys()[i] + " = " + str(result[i]))
+        if color is not None:
+            logging.debug("GOOD : Detecting color " + str(color) + " as first event")
+        else:
+            logging.error("First event considered good but doesn't match a color !")
 
-    return result
+        self.delete_event_detections()
 
+    def wrong_first_color_name(self, channel):
+        self.event = "wrong"
+        color = functions.search_key_with_value(channel, self.pins)
 
-def wait_for_color(color):
-    global pins
-    
-    gpio_set_inputs()
-    
-    if GPIO.wait_for_edge(pins.get(color), GPIO.RISING):
-        logging.debug("Button " + str(color) + " pressed")
-        read_inputs()
+        if color is not None:
+            logging.debug("WRONG : Detecting color " + str(color) + " as first event")
+        else:
+            logging.error("First event considered bad but doesn't match a color !")
 
+        self.delete_event_detections()
 
-def get_first_color_event(color):
-    global pins
-    
-    gpio_set_inputs()
-        
-    GPIO.add_event_detect(pins.get(color), GPIO.RISING, callback=good_first_color_name, bouncetime=200)
-
-    for i in range(len(pins)):
-        if pins.keys()[i] != color:
-            GPIO.add_event_detect(pins.values()[i], GPIO.RISING, callback=wrong_first_color_name, bouncetime=200)
-    
-
-def good_first_color_name(channel):
-    global pins
-    
-    color = functions.search_key_with_value(channel, pins)
-
-    if color is not None:
-        logging.debug("GOOD : Detecting color " + str(color) + " as first event")
-    else:
-        logging.error("First event considered good but doesn't match a color !")
-
-    delete_event_detections()
-
-
-def wrong_first_color_name(channel):
-    global pins
-    
-    color = functions.search_key_with_value(channel, pins)
-    
-    if color is not None:
-        logging.debug("WRONG : Detecting color " + str(color) + " as first event")
-    else:
-        logging.error("First event considered bad but doesn't match a color !")
-
-    delete_event_detections()
-
-
-def delete_event_detections():
-    global pins
-
-    for i in range(len(pins)):
-        GPIO.remove_event_detect(pins.values()[i])
+    def delete_event_detections(self):
+        self.event = "wait"
+        for i in range(len(self.pins)):
+            GPIO.remove_event_detect(self.pins.values()[i])

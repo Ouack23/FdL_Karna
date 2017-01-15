@@ -28,7 +28,7 @@ def set_wrapper():
 def stop_wrapper():
     global wrapper
     wrapper.Stop()
-    logging.info("Stopped !")
+    logging.info("DMX wrapper stopped !")
 
 
 def dmx_sent(status):

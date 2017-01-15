@@ -1,5 +1,5 @@
 from txosc import dispatch, async
-from twisted.internet import reactor, threads, error
+from twisted.internet import reactor, error
 import logging, sys, os, time
 from subprocess import check_output
 
@@ -17,8 +17,8 @@ class UDPReceiverApplication(object):
             self._server_port = reactor.listenUDP(self.port, async.DatagramServerProtocol(self.receiver))
         except error.CannotListenError:
             logging.error("Cannot listen port " + str(port) + ", quit already existing python instances !")
-            # sys.exit(0)
             pid_list = map(int, check_output(["pidof", "python2.7"]).split())
+
             logging.debug("PID python2.7 : " + str(pid_list))
             my_pid = os.getpid()
             logging.debug("My PID : " + str(my_pid))
