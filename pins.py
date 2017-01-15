@@ -1,8 +1,9 @@
-import logging, functions
+import logging, functions, sys
 try:
     import RPi.GPIO as GPIO
 except RuntimeError:
-    pass
+    logging.error("Not a raspberry ! Quitting")
+    sys.exit(0)
 from collections import OrderedDict
 
 
@@ -64,19 +65,14 @@ class Pins(object):
         self.event = "wait"
         self.gpio_set_inputs()
 
-        GPIO.add_event_detect(self.pins.get(color), GPIO.RISING, callback=self.good_first_color_name, 
-bouncetime=1000)
+        GPIO.add_event_detect(self.pins.get(color), GPIO.RISING, callback=self.first_color_name, bouncetime=1000)
 
         for i in range(len(self.pins)):
             if self.pins.keys()[i] != color:
-                GPIO.add_event_detect(self.pins.values()[i], GPIO.RISING, 
-callback=self.wrong_first_color_name, bouncetime=1000)
+                GPIO.add_event_detect(self.pins.values()[i], GPIO.RISING, callback=self.first_color_name, bouncetime=1000)
 
-    def good_first_color_name(self, channel):
-        self.event = "right"
-
-    def wrong_first_color_name(self, channel):
-        self.event = "wrong"
+    def first_color_name(self, channel):
+        self.event = channel
 
     def delete_event_detections(self):
         for i in range(len(self.pins)):
