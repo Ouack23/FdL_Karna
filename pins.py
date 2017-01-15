@@ -1,5 +1,5 @@
-import logging
-import RPi.GPIO as GPIO
+import logging, functions
+# import RPi.GPIO as GPIO
 from collections import OrderedDict
 
 
@@ -8,14 +8,6 @@ pins["blue"] = 4
 pins["yellow"] =  17
 pins["green"] =  27
 pins["red"] = 22
-
-
-def search_key_with_value(v, tab):
-    for k, j in tab.items():
-        if j == v:
-            return k
-
-    return None
 
 
 def gpio_setup(log_level):
@@ -94,7 +86,7 @@ def get_first_color_event(color):
 def good_first_color_name(channel):
     global pins
     
-    color = search_key_with_value(channel, pins)
+    color = functions.search_key_with_value(channel, pins)
 
     if color is not None:
         logging.debug("GOOD : Detecting color " + str(color) + " as first event")
@@ -107,7 +99,7 @@ def good_first_color_name(channel):
 def wrong_first_color_name(channel):
     global pins
     
-    color = search_key_with_value(channel, pins)
+    color = functions.search_key_with_value(channel, pins)
     
     if color is not None:
         logging.debug("WRONG : Detecting color " + str(color) + " as first event")
