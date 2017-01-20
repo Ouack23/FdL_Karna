@@ -1,7 +1,6 @@
 import logging, DMX, random, time, sys
-from array import array
 from collections import OrderedDict
-
+from array import array
 from game import Game
 
 
@@ -18,6 +17,8 @@ class Simon(Game):
         else:
             logging.error("This mode (" + str(mode) + ") isn't supported")
             sys.exit(0)
+
+        self.mode = mode
 
         self.universe = 0
         self.duration = 1
@@ -42,7 +43,8 @@ class Simon(Game):
         logging.debug("Successfully instantiated SIMON game ! :)")
 
     def run(self):
-        logging.info("Running Simon game")
+        if self.mode == "PC":
+            logging.info("Running Simon game")
 
         self.seq.append(self.dmx_colors.keys()[random.randrange(0, self.channels - 1)])
 
