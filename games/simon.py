@@ -21,7 +21,7 @@ class Simon(Game):
         self.mode = mode
 
         self.universe = 0
-        self.duration = 1
+        self.duration = 0.5
         self.channels = 4
         self._DMX = DMX.DMX(self.universe, self.duration, self.channels)
 
@@ -110,3 +110,8 @@ class Simon(Game):
         self.seq = []
         self.fail = False
         self.input_seq = ""
+        tmp = self.duration
+	self.duration = 0.4
+        for i in range(0,3):
+            self._DMX.send_dmx_and_black(self.dmx_colors["r"])
+        self.duration = tmp
